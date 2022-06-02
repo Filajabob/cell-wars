@@ -11,12 +11,13 @@ class Board:
 
         i = 0
 
-        for x in range(self.width):
-            for y in range(self.height):
+        for x in range(1, self.width + 1):
+            for y in range(1, self.height + 1):
+                print((x, y))
                 self.cells.append(Cell(i, (x, y)))
                 i += 1
 
-    def search_for_cell(self, x: int = None, y: int = None, *, coords: tuple = None):
+    def search_for_cell(self, x: int = None, y: int = None, *, coords: tuple = None, ignore_errors=False):
         if not coords:
             coords = (x, y)
 
@@ -24,7 +25,10 @@ class Board:
             if cell.coords == coords:
                 return cell
         else:
-            raise KeyError(f"Failed to find cell at {coords}")
+            if not ignore_errors:
+                raise KeyError(f"Failed to find cell at {coords}")
+            else:
+                return
 
     def owned(self, coords, faction):
         return self.search_for_cell(coords=coords).num == faction.num
@@ -34,10 +38,10 @@ class Board:
             x = coords[0]
             y = coords[1]
 
-        above_owned = self.search_for_cell(x, y + 1).owner.num == faction.num
-        below_owned = self.search_for_cell(x, y - 1).owner.num == faction.num
-        left_owned = self.search_for_cell(x - 1, y).owner.num == faction.num
-        right_owned = self.search_for_cell(x + 1, y).owner.num == faction.num
+        above_owned = self.search_for_cell(x, y + 1, ignore_errors=True).owner.num == faction.num
+        below_owned = self.search_for_cell(x, y - 1, ignore_errors=True).owner.num == faction.num
+        left_owned = self.search_for_cell(x - 1, y, ignore_errors=True).owner.num == faction.num
+        right_owned = self.search_for_cell(x + 1, y, ignore_errors=True).owner.num == faction.num
 
         return above_owned or below_owned or left_owned or right_owned
 
@@ -45,11 +49,11 @@ class Board:
         i = 0
         result = []
 
-        for x in range(self.width):
+        for x in range(1, self.width + 1):
             result.append([])  # Create a new axis
 
-            for y in range(self.height):
-                result[x].append(self.search_for_cell(x, y).owner.num)
+            for y in range(1, self.height + 1):
+                result[x - 1].append(self.search_for_cell(x, y).owner.num)
                 i += 1
 
         return result
@@ -62,12 +66,12 @@ class Board:
 
         pretty_board += f'X\n'
 
-        for y in range(self.height):
-            pretty_board += f' {utils.Colors.CYAN}{y + 1}\t'
+        for y in range(1, self.height + 1):
+            pretty_board += f' {utils.Colors.CYAN}{y}\t'
 
-            for x in range(self.width):
+            for x in range(1, self.width + 1):
                 pretty_board += f"{utils.rgb(*self.search_for_cell(x, y).owner.rgb)}" \
-                                f"[{self.compact_dimensional()[x][y]}]" \
+                                f"[{self.compact_dimensional()[x - 1][y - 1]}]" \
                                 f"{utils.Colors.CYAN} "
 
             pretty_board += f'{utils.Colors.CYAN}\n'
@@ -79,3 +83,9 @@ class Board:
     def transfer_cell(self, cell_coords: tuple, target_faction: Faction = NoFaction()):
         cell = self.search_for_cell(coords=cell_coords)
         cell.owner = target_faction
+
+    def faction_exists(self, faction):
+        faction_num = faction.num
+        cells_owners_nums = [cell.owner.num for cell in self.cells]
+
+        return faction_num in cells_owners_nums
