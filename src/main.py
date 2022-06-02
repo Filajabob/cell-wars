@@ -50,10 +50,19 @@ print(board.pretty())
 
 while True:
     for faction in factions:
-        print(f"{utils.Colors.WHITE}It's {faction.name}'s turn!")
+        print(f"{utils.rgb(*faction.rgb)}It's {faction.name}'s turn!")
         x = int(input("X: "))
         y = int(input("Y: "))
 
-        capture((x, y), faction, board)
+        success = capture((x, y), faction, board)
+
+        while not success:
+            x = int(input("X: "))
+            y = int(input("Y: "))
+            success = capture((x, y), faction, board)
+
+        for _faction in factions:
+            print(f"{utils.rgb(*_faction.rgb)}{_faction.num}: {_faction.name}")
+            print(f"{_faction.name}: {faction.power} power")
 
         print(board.pretty())

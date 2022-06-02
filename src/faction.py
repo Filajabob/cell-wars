@@ -17,4 +17,4 @@ class NoFaction(Faction):
     def __init__(self):
         self.name = "No Faction"
         self.num = 0
-        self.rgb = (0, 0, 255)
+        self.rgb = (0, 255, 255)

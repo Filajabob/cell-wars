@@ -13,7 +13,6 @@ class Board:
 
         for x in range(1, self.width + 1):
             for y in range(1, self.height + 1):
-                print((x, y))
                 self.cells.append(Cell(i, (x, y)))
                 i += 1
 
@@ -38,10 +37,26 @@ class Board:
             x = coords[0]
             y = coords[1]
 
-        above_owned = self.search_for_cell(x, y + 1, ignore_errors=True).owner.num == faction.num
-        below_owned = self.search_for_cell(x, y - 1, ignore_errors=True).owner.num == faction.num
-        left_owned = self.search_for_cell(x - 1, y, ignore_errors=True).owner.num == faction.num
-        right_owned = self.search_for_cell(x + 1, y, ignore_errors=True).owner.num == faction.num
+        try:
+            above_owned = self.search_for_cell(x, y + 1, ignore_errors=True).owner.num == faction.num
+            # 'NoneType' object has no attribute 'owner' means the cell was not found and we should ignore it
+        except:
+            above_owned = False
+
+        try:
+            below_owned = self.search_for_cell(x, y - 1, ignore_errors=True).owner.num == faction.num
+        except:
+            below_owned = False
+
+        try:
+            left_owned = self.search_for_cell(x - 1, y, ignore_errors=True).owner.num == faction.num
+        except:
+            left_owned = False
+
+        try:
+            right_owned = self.search_for_cell(x + 1, y, ignore_errors=True).owner.num == faction.num
+        except:
+            right_owned = False
 
         return above_owned or below_owned or left_owned or right_owned
 
@@ -89,3 +104,15 @@ class Board:
         cells_owners_nums = [cell.owner.num for cell in self.cells]
 
         return faction_num in cells_owners_nums
+
+    def cell_exists(self, x=None, y=None, *, coords=None, num=None):
+        if x and y:
+            coords = (x, y)
+        elif num:
+            for cell in self.cells:
+                if cell.num == num:
+                    return True
+            else:
+                return False
+
+        return self.search_for_cell(coords=coords, ignore_errors=True) is not None
