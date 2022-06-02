@@ -1,5 +1,6 @@
 from cell import Cell
 from faction import Faction, NoFaction
+import utils
 
 
 class Board:
@@ -28,6 +29,18 @@ class Board:
     def owned(self, coords, faction):
         return self.search_for_cell(coords=coords).num == faction.num
 
+    def beside(self, x=None, y=None, faction=NoFaction(), *, coords=None):
+        if not (x or y):
+            x = coords[0]
+            y = coords[1]
+
+        above_owned = self.search_for_cell(x, y + 1).owner.num == faction.num
+        below_owned = self.search_for_cell(x, y - 1).owner.num == faction.num
+        left_owned = self.search_for_cell(x - 1, y).owner.num == faction.num
+        right_owned = self.search_for_cell(x + 1, y).owner.num == faction.num
+
+        return above_owned or below_owned or left_owned or right_owned
+
     def compact_dimensional(self):
         i = 0
         result = []
@@ -42,13 +55,24 @@ class Board:
         return result
 
     def pretty(self):
-        pretty_board = ""
+        pretty_board = "\t"
 
         for x in range(self.width):
-            for y in range(self.height):
-                pretty_board += f"[{self.compact_dimensional()[x][y]}] "
+            pretty_board += f" {x + 1}  "
 
-            pretty_board += '\n'
+        pretty_board += f'X\n'
+
+        for y in range(self.height):
+            pretty_board += f' {utils.Colors.CYAN}{y + 1}\t'
+
+            for x in range(self.width):
+                pretty_board += f"{utils.rgb(*self.search_for_cell(x, y).owner.rgb)}" \
+                                f"[{self.compact_dimensional()[x][y]}]" \
+                                f"{utils.Colors.CYAN} "
+
+            pretty_board += f'{utils.Colors.CYAN}\n'
+
+        pretty_board += " Y"
 
         return pretty_board
 
